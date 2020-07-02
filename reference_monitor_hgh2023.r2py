@@ -51,6 +51,7 @@ class ABFile():
             end_char = b_file_contents[-1]
             if start_char == 'S' and end_char == 'E':
                 self.Afile.writeat(b_file_contents, 0)
+        # Code to make attackcase1 pass
         if not b_file_contents:
             self.writeat(self.readat(None, 0), 0)
         # close both files 
