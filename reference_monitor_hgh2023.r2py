@@ -2,7 +2,7 @@
 Note:
     This security layer uses encasementlib.r2py, restrictions.default, repy.py and Python
     Also you need to give it an application to run.
-    python repy.py restrictions.default encasementlib.r2py sample_security_layer.r2py sample_attack.r2py 
+    python repy.py restrictions.default encasementlib.r2py reference_monitor_hgh2023.r2py [attack].r2py 
 """ 
 TYPE="type"
 ARGS="args"
@@ -31,11 +31,17 @@ class ABFile():
 
     def writeat(self,data,offset):
         # Write the requested data to the B file using the sandbox's writeat call
-        self.Bfile.writeat(data,offset)
+        try:
+            self.Bfile.writeat(data,offset)
+        except:
+            return
   
     def readat(self,bytes,offset):
         # Read from the A file using the sandbox's readat...
-        return self.Afile.readat(bytes,offset)
+        try:
+            return self.Afile.readat(bytes,offset)
+        except:
+            return ''
 
     def close(self):
         # if Bfile is valid, write contents to Afile
@@ -45,6 +51,8 @@ class ABFile():
             end_char = b_file_contents[-1]
             if start_char == 'S' and end_char == 'E':
                 self.Afile.writeat(b_file_contents, 0)
+        if not b_file_contents:
+            self.writeat(self.readat(None, 0), 0)
         # close both files 
         self.Afile.close()
         self.Bfile.close()
