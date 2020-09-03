@@ -65,7 +65,7 @@ class ABFile():
             if not b_file_contents:
                 self.Bfile.writeat(a_file_contents, 0)
         except:
-            return
+            pass
         finally:
             # close both files 
             self.Afile.close()
