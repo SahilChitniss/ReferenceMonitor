@@ -16,6 +16,8 @@ class ABFile():
     def __init__(self,filename,create):
         # globals
         mycontext['debug'] = False   
+        #mycontext['stoplock'] = createlock()
+        self._lock = createlock()
         # local (per object) reference to the underlying file
         self.Afn = filename+'.a'
         self.Bfn = filename+'.b'
@@ -31,32 +33,45 @@ class ABFile():
 
     def writeat(self,data,offset):
         # Write the requested data to the B file using the sandbox's writeat call
+        self._lock.acquire(True)
         try:
             self.Bfile.writeat(data,offset)
         except:
             return
+        finally:
+            self._lock.release()
   
     def readat(self,bytes,offset):
         # Read from the A file using the sandbox's readat...
+        self._lock.acquire(True)
         try:
             return self.Afile.readat(bytes,offset)
         except:
             return ''
+        finally:
+            self._lock.release()
 
     def close(self):
         # if Bfile is valid, write contents to Afile
-        b_file_contents = self.Bfile.readat(None, 0)
-        if b_file_contents and (b_file_contents != self.readat(None, 0)):
-            start_char = b_file_contents[0]
-            end_char = b_file_contents[-1]
-            if start_char == 'S' and end_char == 'E':
-                self.Afile.writeat(b_file_contents, 0)
-        # Code to make attackcase1 pass
-        if not b_file_contents:
-            self.writeat(self.readat(None, 0), 0)
-        # close both files 
-        self.Afile.close()
-        self.Bfile.close()
+        self._lock.acquire(True)
+        try:
+            b_file_contents = self.Bfile.readat(None, 0)
+            a_file_contents = self.Afile.readat(None, 0)
+            if b_file_contents and (b_file_contents != a_file_contents):
+                start_char = b_file_contents[0]
+                end_char = b_file_contents[-1]
+                if start_char == 'S' and end_char == 'E':
+                    self.Afile.writeat(b_file_contents, 0)
+            # Code to make attackcase1 pass
+            if not b_file_contents:
+                self.Bfile.writeat(a_file_contents, 0)
+        except:
+            return
+        finally:
+            # close both files 
+            self.Afile.close()
+            self.Bfile.close()
+            self._lock.release()
 
 
 def ABopenfile(filename, create):
