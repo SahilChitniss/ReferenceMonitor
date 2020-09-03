@@ -16,6 +16,8 @@ class ABFile():
     def __init__(self,filename,create):
         # globals
         mycontext['debug'] = False   
+        if getthreadname() != 'MainThread':
+            return 0
         self._lock = createlock()
         # local (per object) reference to the underlying file
         self.Afn = filename+'.a'
