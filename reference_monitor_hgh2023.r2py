@@ -16,7 +16,6 @@ class ABFile():
     def __init__(self,filename,create):
         # globals
         mycontext['debug'] = False   
-        #mycontext['stoplock'] = createlock()
         self._lock = createlock()
         # local (per object) reference to the underlying file
         self.Afn = filename+'.a'
